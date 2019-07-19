@@ -12,7 +12,6 @@ import (
 	"strconv"
 	"strings"
 
-	sdk "github.com/edgexfoundry/device-sdk-go"
 	"github.com/edgexfoundry/go-mod-core-contracts/models"
 )
 
@@ -101,15 +100,15 @@ func load(config map[string]string, des interface{}) error {
 		case string:
 			valueField.SetString(configVal)
 		case map[string]topicInfo:
-			cmdTopicPairs := strings.Split(configVal, ",")
+			incomingTopicsPairs := strings.Split(configVal, ",")
 
 			topics := make(map[string]topicInfo)
 
-			for _, cmdTopicPair := range cmdTopicPairs {
-				values := strings.Split(cmdTopicPair, ":")
+			for _, incomingTopicPair := range incomingTopicsPairs {
+				values := strings.Split(incomingTopicPair, ":")
 
 				if len(values) != 3 {
-					fmt.Errorf("wrong number of elements in %v expecting 3 received %v", cmdTopicPair, len(values))
+					fmt.Errorf("wrong number of elements in %v expecting 3 received %v", incomingTopicPair, len(values))
 				}
 
 				topic := strings.TrimSpace(values[0])
@@ -117,13 +116,6 @@ func load(config map[string]string, des interface{}) error {
 				topics[topic] = topicInfo{
 					Resource:   strings.TrimSpace(values[1]),
 					DeviceName: strings.TrimSpace(values[2]),
-				}
-
-				service := sdk.RunningService()
-
-				_, ok := service.DeviceResource(topics[topic].DeviceName, topics[topic].Resource, "get")
-				if !ok {
-					return fmt.Errorf("no DeviceObject found with deviceName %v and cmd %v", topics[topic].DeviceName, topics[topic].Resource)
 				}
 			}
 			valueField.Set(reflect.ValueOf(topics))
