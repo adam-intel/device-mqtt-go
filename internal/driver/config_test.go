@@ -60,7 +60,7 @@ func TestCreateDriverConfig(t *testing.T) {
 	configs := map[string]string{
 		IncomingSchema: "tcp", IncomingHost: "0.0.0.0", IncomingPort: "1883",
 		IncomingUser: "admin", IncomingPassword: "public", IncomingQos: "0",
-		IncomingKeepAlive: "3600", IncomingClientId: "IncomingDataSubscriber", IncomingTopic: "DataTopic",
+		IncomingKeepAlive: "3600", IncomingClientId: "IncomingDataSubscriber", IncomingTopics: "testTopic:TestResourceJSON:TestDevice",
 
 		ResponseSchema: "tcp", ResponseHost: "0.0.0.0", ResponsePort: "1883",
 		ResponseUser: "admin", ResponsePassword: "public", ResponseQos: "0",
@@ -70,11 +70,15 @@ func TestCreateDriverConfig(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Fail to load config, %v", err)
 	}
+	topicInfo, ok := diverConfig.IncomingTopics["testTopic"]
+	if !ok {
+		t.Fatalf("Unexpect test result, driver config doesn't correctly load")
+	}
 	if diverConfig.IncomingSchema != configs[IncomingSchema] || diverConfig.IncomingHost != configs[IncomingHost] ||
 		diverConfig.IncomingPort != 1883 || diverConfig.IncomingUser != configs[IncomingUser] ||
 		diverConfig.IncomingPassword != configs[IncomingPassword] || diverConfig.IncomingQos != 0 ||
 		diverConfig.IncomingKeepAlive != 3600 || diverConfig.IncomingClientId != configs[IncomingClientId] ||
-		diverConfig.IncomingTopic != configs[IncomingTopic] ||
+		topicInfo.Resource != "TestResourceJSON" ||
 		diverConfig.ResponseSchema != configs[ResponseSchema] || diverConfig.ResponseHost != configs[ResponseHost] ||
 		diverConfig.ResponsePort != 1883 || diverConfig.ResponseUser != configs[ResponseUser] ||
 		diverConfig.ResponsePassword != configs[ResponsePassword] || diverConfig.ResponseQos != 0 ||

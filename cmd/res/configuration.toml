@@ -44,6 +44,22 @@ LogLevel = "INFO"
   Host = "localhost"
   Port = 48061
 
+# Pre-define Devices
+[[DeviceList]]
+  Name = "IntelAcePoint"
+  Profile = "MQTT-Device"
+  Description = "MQTT device"
+  Labels = [ "MQTT"]
+  [DeviceList.Protocols]
+    [DeviceList.Protocols.mqtt]
+       Schema = "tcp"
+       Host = "localhost"
+       Port = "1883"
+       ClientId = "CommandPublisher"
+       User = ""
+       Password = ""
+       Topic = "NoUsed"
+
 [Device]
   DataTransform = true
   InitCmd = ""
@@ -52,25 +68,25 @@ LogLevel = "INFO"
   MaxCmdValueLen = 256
   RemoveCmd = ""
   RemoveCmdArgs = ""
-  ProfilesDir = ""
+  ProfilesDir = "./res"
 
 # Driver configs
 [Driver]
 IncomingSchema = "tcp"
-IncomingHost = "0.0.0.0"
+IncomingHost = "localhost"
 IncomingPort = "1883"
-IncomingUser = "admin"
-IncomingPassword = "public"
+IncomingUser = ""
+IncomingPassword = ""
 IncomingQos = "0"
-IncomingKeepAlive = "3600"
+IncomingKeepAlive = "60"
 IncomingClientId = "IncomingDataSubscriber"
-IncomingTopic = "DataTopic"
+IncomingTopics = "rfid/gw/heartbeat:HeartbeatJSON:IntelAcePoint,rfid/gw/alerts:AlertsJSON:IntelAcePoint,rfid/gw/events:EventsJSON:IntelAcePoint"
 ResponseSchema = "tcp"
-ResponseHost = "0.0.0.0"
+ResponseHost = "localhost"
 ResponsePort = "1883"
-ResponseUser = "admin"
-ResponsePassword = "public"
+ResponseUser = ""
+ResponsePassword = ""
 ResponseQos = "0"
-ResponseKeepAlive = "3600"
+ResponseKeepAlive = "60"
 ResponseClientId = "CommandResponseSubscriber"
 ResponseTopic = "ResponseTopic"

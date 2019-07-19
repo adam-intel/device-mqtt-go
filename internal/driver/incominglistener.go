@@ -7,7 +7,6 @@
 package driver
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"strings"
@@ -26,7 +25,7 @@ func startIncomingListening() error {
 	var mqttClientId = driver.Config.IncomingClientId
 	var qos = byte(driver.Config.IncomingQos)
 	var keepAlive = driver.Config.IncomingKeepAlive
-	var topic = driver.Config.IncomingTopic
+	var topics = driver.Config.IncomingTopics
 
 	uri := &url.URL{
 		Scheme: strings.ToLower(scheme),
@@ -45,10 +44,13 @@ func startIncomingListening() error {
 		}
 	}()
 
-	token := client.Subscribe(topic, qos, onIncomingDataReceived)
-	if token.Wait() && token.Error() != nil {
-		driver.Logger.Info(fmt.Sprintf("[Incoming listener] Stop incoming data listening. Cause:%v", token.Error()))
-		return token.Error()
+	for topic := range topics {
+		token := client.Subscribe(topic, qos, onIncomingDataReceived)
+		if token.Wait() && token.Error() != nil {
+			driver.Logger.Info(fmt.Sprintf("[Incoming listener] Stop incoming data listening. Cause:%v", token.Error()))
+			return token.Error()
+		}
+		driver.Logger.Info(fmt.Sprintf("[Incoming listener] Subscribed to topic: %v", topic))
 	}
 
 	driver.Logger.Info("[Incoming listener] Start incoming data listening. ")
@@ -56,65 +58,38 @@ func startIncomingListening() error {
 }
 
 func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
-	var data map[string]interface{}
-	json.Unmarshal(message.Payload(), &data)
 
-	if !checkDataWithKey(data, "name") || !checkDataWithKey(data, "cmd") {
-		return
-	}
-
-	deviceName := data["name"].(string)
-	cmd := data["cmd"].(string)
-
-	reading, ok := data[cmd]
+	topicInfo, ok := driver.Config.IncomingTopics[message.Topic()]
 	if !ok {
-		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] Incoming reading ignored. No reading data found : topic=%v msg=%v", message.Topic(), string(message.Payload())))
+		driver.Logger.Error(fmt.Sprintf("[Incoming listener] Topic %s not in IncomingTopics configuration", message.Topic()))
 		return
 	}
 
 	service := sdk.RunningService()
 
-	deviceObject, ok := service.DeviceResource(deviceName, cmd, "get")
+	deviceObject, ok := service.DeviceResource(topicInfo.DeviceName, topicInfo.Resource, "get")
 	if !ok {
-		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] Incoming reading ignored. No DeviceObject found : topic=%v msg=%v", message.Topic(), string(message.Payload())))
+		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] Incoming reading ignored. No DeviceObject found for topic=%v, deviceName=%s and resource=%s", message.Topic(), topicInfo.DeviceName, topicInfo.Resource))
 		return
 	}
 
 	req := sdkModel.CommandRequest{
-		DeviceResourceName: cmd,
+		DeviceResourceName: topicInfo.Resource,
 		Type:               sdkModel.ParseValueType(deviceObject.Properties.Value.Type),
 	}
 
-	result, err := newResult(req, reading)
-
+	result, err := newResult(req, string(message.Payload()))
 	if err != nil {
-		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] Incoming reading ignored.   topic=%v msg=%v error=%v", message.Topic(), string(message.Payload()), err))
+		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] Incoming reading ignored. Failed to parse reading to a CommandValue for topic=%v msg=%v error=%v", message.Topic(), string(message.Payload()), err))
 		return
 	}
 
 	asyncValues := &sdkModel.AsyncValues{
-		DeviceName:    deviceName,
+		DeviceName:    topicInfo.DeviceName,
 		CommandValues: []*sdkModel.CommandValue{result},
 	}
 
 	driver.Logger.Info(fmt.Sprintf("[Incoming listener] Incoming reading received: topic=%v msg=%v", message.Topic(), string(message.Payload())))
 
 	driver.AsyncCh <- asyncValues
-
-}
-
-func checkDataWithKey(data map[string]interface{}, key string) bool {
-	val, ok := data[key]
-	if !ok {
-		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] Incoming reading ignored. No %v found : msg=%v", key, data))
-		return false
-	}
-
-	switch val.(type) {
-	case string:
-		return true
-	default:
-		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] Incoming reading ignored. %v should be string : msg=%v", key, data))
-		return false
-	}
 }

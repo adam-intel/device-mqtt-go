@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/models"
 )
@@ -24,6 +25,11 @@ type ConnectionInfo struct {
 	Topic    string
 }
 
+type topicInfo struct {
+	Resource   string
+	DeviceName string
+}
+
 type configuration struct {
 	IncomingSchema    string
 	IncomingHost      string
@@ -33,7 +39,7 @@ type configuration struct {
 	IncomingQos       int
 	IncomingKeepAlive int
 	IncomingClientId  string
-	IncomingTopic     string
+	IncomingTopics    map[string]topicInfo // topic is the key
 
 	ResponseSchema    string
 	ResponseHost      string
@@ -79,22 +85,42 @@ func load(config map[string]string, des interface{}) error {
 		typeField := val.Type().Field(i)
 		valueField := val.Field(i)
 
-		val, ok := config[typeField.Name]
+		configVal, ok := config[typeField.Name]
 		if !ok {
 			return fmt.Errorf(errorMessage, typeField.Name)
 		}
 
-		switch valueField.Kind() {
-		case reflect.Int:
-			intVal, err := strconv.Atoi(val)
+		switch valueField.Interface().(type) {
+		case int:
+			intVal, err := strconv.Atoi(configVal)
 			if err != nil {
 				return err
 			}
 			valueField.SetInt(int64(intVal))
-		case reflect.String:
-			valueField.SetString(val)
+		case string:
+			valueField.SetString(configVal)
+		case map[string]topicInfo:
+			incomingTopicsPairs := strings.Split(configVal, ",")
+
+			topics := make(map[string]topicInfo)
+
+			for _, incomingTopicPair := range incomingTopicsPairs {
+				values := strings.Split(incomingTopicPair, ":")
+
+				if len(values) != 3 {
+					fmt.Errorf("wrong number of elements in %v expecting 3 received %v", incomingTopicPair, len(values))
+				}
+
+				topic := strings.TrimSpace(values[0])
+
+				topics[topic] = topicInfo{
+					Resource:   strings.TrimSpace(values[1]),
+					DeviceName: strings.TrimSpace(values[2]),
+				}
+			}
+			valueField.Set(reflect.ValueOf(topics))
 		default:
-			return fmt.Errorf("none supported value type %v ,%v", valueField.Kind(), typeField.Name)
+			return fmt.Errorf("non supported value type %v ,%v", valueField.Kind(), typeField.Name)
 		}
 	}
 	return nil
