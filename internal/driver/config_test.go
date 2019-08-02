@@ -56,7 +56,7 @@ func TestCreateConnectionInfo_fail(t *testing.T) {
 	}
 }
 
-func TestCreateDriverConfig(t *testing.T) {
+func TestCreateDriverConfig_SingleTopic(t *testing.T) {
 	configs := map[string]string{
 		IncomingSchema: "tcp", IncomingHost: "0.0.0.0", IncomingPort: "1883",
 		IncomingUser: "admin", IncomingPassword: "public", IncomingQos: "0",
@@ -65,27 +65,152 @@ func TestCreateDriverConfig(t *testing.T) {
 		ResponseSchema: "tcp", ResponseHost: "0.0.0.0", ResponsePort: "1883",
 		ResponseUser: "admin", ResponsePassword: "public", ResponseQos: "0",
 		ResponseKeepAlive: "3600", ResponseClientId: "CommandResponseSubscriber", ResponseTopic: "ResponseTopic",
+
+		AdditionalJsonValues: "",
 	}
-	diverConfig, err := CreateDriverConfig(configs)
+	driverConfig, err := CreateDriverConfig(configs)
 	if err != nil {
 		t.Fatalf("Fail to load config, %v", err)
 	}
-	topicInfo, ok := diverConfig.IncomingTopics["testTopic"]
+	topicInfo, ok := driverConfig.IncomingTopics["testTopic"]
 	if !ok {
 		t.Fatalf("Unexpect test result, driver config doesn't correctly load")
 	}
-	if diverConfig.IncomingSchema != configs[IncomingSchema] || diverConfig.IncomingHost != configs[IncomingHost] ||
-		diverConfig.IncomingPort != 1883 || diverConfig.IncomingUser != configs[IncomingUser] ||
-		diverConfig.IncomingPassword != configs[IncomingPassword] || diverConfig.IncomingQos != 0 ||
-		diverConfig.IncomingKeepAlive != 3600 || diverConfig.IncomingClientId != configs[IncomingClientId] ||
+	if driverConfig.IncomingSchema != configs[IncomingSchema] || driverConfig.IncomingHost != configs[IncomingHost] ||
+		driverConfig.IncomingPort != 1883 || driverConfig.IncomingUser != configs[IncomingUser] ||
+		driverConfig.IncomingPassword != configs[IncomingPassword] || driverConfig.IncomingQos != 0 ||
+		driverConfig.IncomingKeepAlive != 3600 || driverConfig.IncomingClientId != configs[IncomingClientId] ||
 		topicInfo.Resource != "TestResourceJSON" ||
-		diverConfig.ResponseSchema != configs[ResponseSchema] || diverConfig.ResponseHost != configs[ResponseHost] ||
-		diverConfig.ResponsePort != 1883 || diverConfig.ResponseUser != configs[ResponseUser] ||
-		diverConfig.ResponsePassword != configs[ResponsePassword] || diverConfig.ResponseQos != 0 ||
-		diverConfig.ResponseKeepAlive != 3600 || diverConfig.ResponseClientId != configs[ResponseClientId] ||
-		diverConfig.ResponseTopic != configs[ResponseTopic] {
+		driverConfig.ResponseSchema != configs[ResponseSchema] || driverConfig.ResponseHost != configs[ResponseHost] ||
+		driverConfig.ResponsePort != 1883 || driverConfig.ResponseUser != configs[ResponseUser] ||
+		driverConfig.ResponsePassword != configs[ResponsePassword] || driverConfig.ResponseQos != 0 ||
+		driverConfig.ResponseKeepAlive != 3600 || driverConfig.ResponseClientId != configs[ResponseClientId] ||
+		driverConfig.ResponseTopic != configs[ResponseTopic] {
 
 		t.Fatalf("Unexpect test result, driver config doesn't correct load")
+	}
+}
+
+func TestCreateDriverConfig_IncomingTopics_MultiTopics(t *testing.T) {
+	configs := map[string]string{
+		IncomingSchema: "tcp", IncomingHost: "0.0.0.0", IncomingPort: "1883",
+		IncomingUser: "admin", IncomingPassword: "public", IncomingQos: "0",
+		IncomingKeepAlive: "3600", IncomingClientId: "IncomingDataSubscriber", IncomingTopics: "testTopic:TestResourceJSON:TestDevice, testTopic1: TestResourceJSON1 :TestDevice1",
+
+		ResponseSchema: "tcp", ResponseHost: "0.0.0.0", ResponsePort: "1883",
+		ResponseUser: "admin", ResponsePassword: "public", ResponseQos: "0",
+		ResponseKeepAlive: "3600", ResponseClientId: "CommandResponseSubscriber", ResponseTopic: "ResponseTopic",
+
+		AdditionalJsonValues: "",
+	}
+	driverConfig, err := CreateDriverConfig(configs)
+	if err != nil {
+		t.Fatalf("Fail to load config, %v", err)
+	}
+	topicInfo, ok := driverConfig.IncomingTopics["testTopic"]
+	if !ok {
+		t.Fatalf("Unexpect test result, driver config doesn't correctly load IncomingTopics for testTopic")
+	}
+
+	topicInfo1, ok := driverConfig.IncomingTopics["testTopic1"]
+	if !ok {
+		t.Fatalf("Unexpect test result, driver config doesn't correctly load IncomingTopics for testTopic1")
+	}
+	if driverConfig.IncomingSchema != configs[IncomingSchema] || driverConfig.IncomingHost != configs[IncomingHost] ||
+		driverConfig.IncomingPort != 1883 || driverConfig.IncomingUser != configs[IncomingUser] ||
+		driverConfig.IncomingPassword != configs[IncomingPassword] || driverConfig.IncomingQos != 0 ||
+		driverConfig.IncomingKeepAlive != 3600 || driverConfig.IncomingClientId != configs[IncomingClientId] ||
+		topicInfo.Resource != "TestResourceJSON" || topicInfo1.Resource != "TestResourceJSON1" ||
+		driverConfig.ResponseSchema != configs[ResponseSchema] || driverConfig.ResponseHost != configs[ResponseHost] ||
+		driverConfig.ResponsePort != 1883 || driverConfig.ResponseUser != configs[ResponseUser] ||
+		driverConfig.ResponsePassword != configs[ResponsePassword] || driverConfig.ResponseQos != 0 ||
+		driverConfig.ResponseKeepAlive != 3600 || driverConfig.ResponseClientId != configs[ResponseClientId] ||
+		driverConfig.ResponseTopic != configs[ResponseTopic] {
+
+		t.Fatalf("Unexpect test result, driver config doesn't correct load")
+	}
+}
+
+func TestCreateDriverConfig_IncomingTopics_KeyValueNotColonSeparated(t *testing.T) {
+	configs := map[string]string{
+		IncomingSchema: "tcp", IncomingHost: "0.0.0.0", IncomingPort: "1883",
+		IncomingUser: "admin", IncomingPassword: "public", IncomingQos: "0",
+		IncomingKeepAlive: "3600", IncomingClientId: "IncomingDataSubscriber", IncomingTopics: "testTopic@TestResourceJSON @TestDevice",
+
+		ResponseSchema: "tcp", ResponseHost: "0.0.0.0", ResponsePort: "1883",
+		ResponseUser: "admin", ResponsePassword: "public", ResponseQos: "0",
+		ResponseKeepAlive: "3600", ResponseClientId: "CommandResponseSubscriber", ResponseTopic: "ResponseTopic",
+
+		AdditionalJsonValues: "",
+	}
+	_, err := CreateDriverConfig(configs)
+	if err == nil {
+		t.Fatalf("Expected to get error during load config for IncomingTopics")
+	}
+}
+
+func TestCreateDriverConfig_AdditionalJsonValues(t *testing.T) {
+	configs := map[string]string{
+		IncomingSchema: "tcp", IncomingHost: "0.0.0.0", IncomingPort: "1883",
+		IncomingUser: "admin", IncomingPassword: "public", IncomingQos: "0",
+		IncomingKeepAlive: "3600", IncomingClientId: "IncomingDataSubscriber", IncomingTopics: "testTopic:TestResourceJSON:TestDevice",
+
+		ResponseSchema: "tcp", ResponseHost: "0.0.0.0", ResponsePort: "1883",
+		ResponseUser: "admin", ResponsePassword: "public", ResponseQos: "0",
+		ResponseKeepAlive: "3600", ResponseClientId: "CommandResponseSubscriber", ResponseTopic: "ResponseTopic",
+
+		AdditionalJsonValues: "key1:value1, key2: value2",
+	}
+	driverConfig, err := CreateDriverConfig(configs)
+	if err != nil {
+		t.Fatalf("Fail to load config, %v", err)
+	}
+	topicInfo, ok := driverConfig.IncomingTopics["testTopic"]
+	if !ok {
+		t.Fatalf("Unexpected test result, driver config doesn't correctly load IncominTopics")
+	}
+
+	additionalJsonValue1, ok := driverConfig.AdditionalJsonValues["key1"]
+	if !ok {
+		t.Fatalf("Unexpected test result, driver config doesn't correctly load AdditionalJsonValues")
+	}
+
+	additionalJsonValue2, ok := driverConfig.AdditionalJsonValues["key2"]
+	if !ok {
+		t.Fatalf("Unexpected test result, driver config doesn't correctly load AdditionalJsonValues")
+	}
+
+	if driverConfig.IncomingSchema != configs[IncomingSchema] || driverConfig.IncomingHost != configs[IncomingHost] ||
+		driverConfig.IncomingPort != 1883 || driverConfig.IncomingUser != configs[IncomingUser] ||
+		driverConfig.IncomingPassword != configs[IncomingPassword] || driverConfig.IncomingQos != 0 ||
+		driverConfig.IncomingKeepAlive != 3600 || driverConfig.IncomingClientId != configs[IncomingClientId] ||
+		topicInfo.Resource != "TestResourceJSON" ||
+		driverConfig.ResponseSchema != configs[ResponseSchema] || driverConfig.ResponseHost != configs[ResponseHost] ||
+		driverConfig.ResponsePort != 1883 || driverConfig.ResponseUser != configs[ResponseUser] ||
+		driverConfig.ResponsePassword != configs[ResponsePassword] || driverConfig.ResponseQos != 0 ||
+		driverConfig.ResponseKeepAlive != 3600 || driverConfig.ResponseClientId != configs[ResponseClientId] ||
+		driverConfig.ResponseTopic != configs[ResponseTopic] ||
+		additionalJsonValue1 != "value1" || additionalJsonValue2 != "value2" {
+
+		t.Fatalf("Unexpect test result, driver config doesn't correct load")
+	}
+}
+
+func TestCreateDriverConfig_AdditionalJsonValues_KeyValueNotColonSeparated(t *testing.T) {
+	configs := map[string]string{
+		IncomingSchema: "tcp", IncomingHost: "0.0.0.0", IncomingPort: "1883",
+		IncomingUser: "admin", IncomingPassword: "public", IncomingQos: "0",
+		IncomingKeepAlive: "3600", IncomingClientId: "IncomingDataSubscriber", IncomingTopics: "testTopic:TestResourceJSON:TestDevice",
+
+		ResponseSchema: "tcp", ResponseHost: "0.0.0.0", ResponsePort: "1883",
+		ResponseUser: "admin", ResponsePassword: "public", ResponseQos: "0",
+		ResponseKeepAlive: "3600", ResponseClientId: "CommandResponseSubscriber", ResponseTopic: "ResponseTopic",
+
+		AdditionalJsonValues: "key1@value1, key2: value2",
+	}
+	_, err := CreateDriverConfig(configs)
+	if err == nil {
+		t.Fatalf("Expected to get error during load config for AdditionalJsonValues")
 	}
 }
 

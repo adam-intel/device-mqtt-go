@@ -38,4 +38,6 @@ const (
 	ResponseKeepAlive = "ResponseKeepAlive"
 	ResponseClientId  = "ResponseClientId"
 	ResponseTopic     = "ResponseTopic"
+
+	AdditionalJsonValues = "AdditionalJsonValues"
 )
