@@ -39,5 +39,5 @@ const (
 	ResponseClientId  = "ResponseClientId"
 	ResponseTopic     = "ResponseTopic"
 
-	AdditionalJsonValues = "AdditionalJsonValues"
+	AdditionalPayloadJsonValues = "AdditionalPayloadJsonValues"
 )

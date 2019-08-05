@@ -66,7 +66,7 @@ func TestCreateDriverConfig_SingleTopic(t *testing.T) {
 		ResponseUser: "admin", ResponsePassword: "public", ResponseQos: "0",
 		ResponseKeepAlive: "3600", ResponseClientId: "CommandResponseSubscriber", ResponseTopic: "ResponseTopic",
 
-		AdditionalJsonValues: "",
+		AdditionalPayloadJsonValues: "",
 	}
 	driverConfig, err := CreateDriverConfig(configs)
 	if err != nil {
@@ -101,7 +101,7 @@ func TestCreateDriverConfig_IncomingTopics_MultiTopics(t *testing.T) {
 		ResponseUser: "admin", ResponsePassword: "public", ResponseQos: "0",
 		ResponseKeepAlive: "3600", ResponseClientId: "CommandResponseSubscriber", ResponseTopic: "ResponseTopic",
 
-		AdditionalJsonValues: "",
+		AdditionalPayloadJsonValues: "",
 	}
 	driverConfig, err := CreateDriverConfig(configs)
 	if err != nil {
@@ -141,7 +141,7 @@ func TestCreateDriverConfig_IncomingTopics_KeyValueNotColonSeparated(t *testing.
 		ResponseUser: "admin", ResponsePassword: "public", ResponseQos: "0",
 		ResponseKeepAlive: "3600", ResponseClientId: "CommandResponseSubscriber", ResponseTopic: "ResponseTopic",
 
-		AdditionalJsonValues: "",
+		AdditionalPayloadJsonValues: "",
 	}
 	_, err := CreateDriverConfig(configs)
 	if err == nil {
@@ -149,7 +149,7 @@ func TestCreateDriverConfig_IncomingTopics_KeyValueNotColonSeparated(t *testing.
 	}
 }
 
-func TestCreateDriverConfig_AdditionalJsonValues(t *testing.T) {
+func TestCreateDriverConfig_AdditionalPayloadJsonValues(t *testing.T) {
 	configs := map[string]string{
 		IncomingSchema: "tcp", IncomingHost: "0.0.0.0", IncomingPort: "1883",
 		IncomingUser: "admin", IncomingPassword: "public", IncomingQos: "0",
@@ -159,7 +159,7 @@ func TestCreateDriverConfig_AdditionalJsonValues(t *testing.T) {
 		ResponseUser: "admin", ResponsePassword: "public", ResponseQos: "0",
 		ResponseKeepAlive: "3600", ResponseClientId: "CommandResponseSubscriber", ResponseTopic: "ResponseTopic",
 
-		AdditionalJsonValues: "key1:value1, key2: value2",
+		AdditionalPayloadJsonValues: "key1:value1, key2: value2",
 	}
 	driverConfig, err := CreateDriverConfig(configs)
 	if err != nil {
@@ -170,14 +170,14 @@ func TestCreateDriverConfig_AdditionalJsonValues(t *testing.T) {
 		t.Fatalf("Unexpected test result, driver config doesn't correctly load IncominTopics")
 	}
 
-	additionalJsonValue1, ok := driverConfig.AdditionalJsonValues["key1"]
+	additionalJsonValue1, ok := driverConfig.AdditionalPayloadJsonValues["key1"]
 	if !ok {
-		t.Fatalf("Unexpected test result, driver config doesn't correctly load AdditionalJsonValues")
+		t.Fatalf("Unexpected test result, driver config doesn't correctly load AdditionalPayloadJsonValues")
 	}
 
-	additionalJsonValue2, ok := driverConfig.AdditionalJsonValues["key2"]
+	additionalJsonValue2, ok := driverConfig.AdditionalPayloadJsonValues["key2"]
 	if !ok {
-		t.Fatalf("Unexpected test result, driver config doesn't correctly load AdditionalJsonValues")
+		t.Fatalf("Unexpected test result, driver config doesn't correctly load AdditionalPayloadJsonValues")
 	}
 
 	if driverConfig.IncomingSchema != configs[IncomingSchema] || driverConfig.IncomingHost != configs[IncomingHost] ||
@@ -196,7 +196,7 @@ func TestCreateDriverConfig_AdditionalJsonValues(t *testing.T) {
 	}
 }
 
-func TestCreateDriverConfig_AdditionalJsonValues_KeyValueNotColonSeparated(t *testing.T) {
+func TestCreateDriverConfig_AdditionalPayloadJsonValues_KeyValueNotColonSeparated(t *testing.T) {
 	configs := map[string]string{
 		IncomingSchema: "tcp", IncomingHost: "0.0.0.0", IncomingPort: "1883",
 		IncomingUser: "admin", IncomingPassword: "public", IncomingQos: "0",
@@ -206,11 +206,11 @@ func TestCreateDriverConfig_AdditionalJsonValues_KeyValueNotColonSeparated(t *te
 		ResponseUser: "admin", ResponsePassword: "public", ResponseQos: "0",
 		ResponseKeepAlive: "3600", ResponseClientId: "CommandResponseSubscriber", ResponseTopic: "ResponseTopic",
 
-		AdditionalJsonValues: "key1@value1, key2: value2",
+		AdditionalPayloadJsonValues: "key1@value1, key2: value2",
 	}
 	_, err := CreateDriverConfig(configs)
 	if err == nil {
-		t.Fatalf("Expected to get error during load config for AdditionalJsonValues")
+		t.Fatalf("Expected to get error during load config for AdditionalPayloadJsonValues")
 	}
 }
 

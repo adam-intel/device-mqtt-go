@@ -52,7 +52,7 @@ type configuration struct {
 	ResponseClientId  string
 	ResponseTopic     string
 
-	AdditionalJsonValues map[string]string
+	AdditionalPayloadJsonValues map[string]string
 }
 
 // CreateDriverConfig use to load driver config for incoming listener and response listener
