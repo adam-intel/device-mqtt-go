@@ -51,6 +51,8 @@ type configuration struct {
 	ResponseKeepAlive int
 	ResponseClientId  string
 	ResponseTopic     string
+
+	AdditionalPayloadJsonValues map[string]string
 }
 
 // CreateDriverConfig use to load driver config for incoming listener and response listener
@@ -101,6 +103,9 @@ func load(config map[string]string, des interface{}) error {
 		case string:
 			valueField.SetString(configVal)
 		case map[string]topicInfo:
+			if strings.TrimSpace(configVal) == "" {
+				continue
+			}
 			incomingTopicsPairs := strings.Split(configVal, ",")
 
 			topics := make(map[string]topicInfo)
@@ -109,7 +114,7 @@ func load(config map[string]string, des interface{}) error {
 				values := strings.Split(incomingTopicPair, ":")
 
 				if len(values) != 3 {
-					fmt.Errorf("wrong number of elements in %v expecting 3 received %v", incomingTopicPair, len(values))
+					return fmt.Errorf("wrong number of elements in %v expecting 3 received %v", incomingTopicPair, len(values))
 				}
 
 				topic := strings.TrimSpace(values[0])
@@ -120,6 +125,28 @@ func load(config map[string]string, des interface{}) error {
 				}
 			}
 			valueField.Set(reflect.ValueOf(topics))
+		case map[string]string:
+			if strings.TrimSpace(configVal) == "" {
+				continue
+			}
+
+			additionalValuePairs := strings.Split(configVal, ",")
+			additionalValues := make(map[string]string)
+
+			for _, additionalValuePair := range additionalValuePairs {
+				values := strings.Split(additionalValuePair, ":")
+
+				if len(values) != 2 {
+					return fmt.Errorf("wrong number of elements in %v: expecting 2, received %v", additionalValuePair, len(values))
+				}
+
+				jsonKey := strings.TrimSpace(values[0])
+				jsonValue := strings.TrimSpace(values[1])
+				additionalValues[jsonKey] = jsonValue
+
+				valueField.Set(reflect.ValueOf(additionalValues))
+			}
+
 		default:
 			return fmt.Errorf("non supported value type %v ,%v", valueField.Kind(), typeField.Name)
 		}

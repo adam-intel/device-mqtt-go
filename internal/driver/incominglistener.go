@@ -8,6 +8,7 @@
 package driver
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"strings"
@@ -79,7 +80,19 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 		Type:               sdkModel.ParseValueType(deviceObject.Properties.Value.Type),
 	}
 
-	result, err := newResult(req, string(message.Payload()))
+	newPayload := []byte{}
+	if sdk.DriverConfigs()[AdditionalPayloadJsonValues] != "" {
+		extendedPayload, err := addJSONValuesToPayload(message.Payload())
+		if err != nil {
+			driver.Logger.Error(fmt.Sprintf("[Incoming listener] Error adding JSON values to payload: %v\n", err))
+			return
+		}
+		newPayload = extendedPayload
+	} else {
+		newPayload = message.Payload()
+	}
+
+	result, err := newResult(req, string(newPayload))
 	if err != nil {
 		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] Incoming reading ignored. Failed to parse reading to a CommandValue for topic=%v msg=%v error=%v", message.Topic(), string(message.Payload()), err))
 		return
@@ -93,4 +106,22 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 	driver.Logger.Info(fmt.Sprintf("[Incoming listener] Incoming reading received: topic=%v msg=%v", message.Topic(), string(message.Payload())))
 
 	driver.AsyncCh <- asyncValues
+}
+
+func addJSONValuesToPayload(incomingPayload []byte) ([]byte, error) {
+	var payloadData map[string]interface{}
+	err := json.Unmarshal(incomingPayload, &payloadData)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't unmarshal incoming message payload: %v", err)
+	}
+
+	for jsonKey, jsonValue := range driver.Config.AdditionalPayloadJsonValues {
+		payloadData[jsonKey] = jsonValue
+	}
+	payload, err := json.Marshal(payloadData)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't marshal payload data: %v", err)
+	}
+
+	return payload, nil
 }
