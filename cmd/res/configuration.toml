@@ -43,10 +43,24 @@ LogLevel = "INFO"
 
 # Pre-define Devices
 [[DeviceList]]
+  Name = "device-cv-mqtt"
+  Profile = "MQTT-Device"
+  Description = "MQTT device"
+  Labels = ["MQTT"]
+  [DeviceList.Protocols]
+    [DeviceList.Protocols.mqtt]
+       Schema = "tcp"
+       Host = "localhost"
+       Port = "1883"
+       ClientId = "CommandPublisher"
+       User = ""
+       Password = ""
+       Topic = "NoUsed"	
+[[DeviceList]]
   Name = "IntelAcePoint"
   Profile = "MQTT-Device"
   Description = "MQTT device"
-  Labels = [ "MQTT"]
+  Labels = ["MQTT"]
   [DeviceList.Protocols]
     [DeviceList.Protocols.mqtt]
        Schema = "tcp"
@@ -77,7 +91,7 @@ IncomingPassword = ""
 IncomingQos = "0"
 IncomingKeepAlive = "60"
 IncomingClientId = "IncomingDataSubscriber"
-IncomingTopics = "rfid/gw/events:EventsJSON:IntelAcePoint"
+IncomingTopics = "rfid/gw/events:EventsJSON:IntelAcePoint,enter_event:EnterEvent:device-cv-mqtt,exit_event:ExitEvent:device-cv-mqtt"
 ResponseSchema = "tcp"
 ResponseHost = "localhost"
 ResponsePort = "1883"

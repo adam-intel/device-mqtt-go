@@ -1,9 +1,9 @@
 [Service]
-Host = "edgex-device-mqtt"
+Host = "device-mqtt-cv"
 Port = 49982
 ConnectRetries = 3
 Labels = []
-OpenMsg = "device simple started"
+OpenMsg = "device mqtt started"
 Timeout = 5000
 EnableAsyncReadings = true
 AsyncBufferSize = 16
@@ -15,6 +15,13 @@ CheckInterval = "10s"
 FailLimit = 3
 FailWaitTime = 10
 Type = "consul"
+
+[Logging]
+EnableRemote = false
+File = "./device-mqtt.log"
+
+[Writable]
+LogLevel = "INFO"
 
 [Clients]
   [Clients.Data]
@@ -34,6 +41,36 @@ Type = "consul"
   Host = "edgex-support-logging"
   Port = 48061
 
+# Pre-define Devices
+[[DeviceList]]
+  Name = "device-cv-mqtt"
+  Profile = "MQTT-Device"
+  Description = "MQTT device"
+  Labels = ["MQTT"]
+  [DeviceList.Protocols]
+    [DeviceList.Protocols.mqtt]
+       Schema = "tcp"
+       Host = "mqtt"
+       Port = "1883"
+       ClientId = "CommandPublisher"
+       User = ""
+       Password = ""
+       Topic = "NoUsed"	
+[[DeviceList]]
+  Name = "IntelAcePoint"
+  Profile = "MQTT-Device"
+  Description = "MQTT device"
+  Labels = ["MQTT"]
+  [DeviceList.Protocols]
+    [DeviceList.Protocols.mqtt]
+       Schema = "tcp"
+       Host = "mqtt"
+       Port = "1883"
+       ClientId = "CommandPublisher"
+       User = ""
+       Password = ""
+       Topic = "NoUsed"
+
 [Device]
   DataTransform = true
   InitCmd = ""
@@ -42,32 +79,26 @@ Type = "consul"
   MaxCmdValueLen = 256
   RemoveCmd = ""
   RemoveCmdArgs = ""
-  ProfilesDir = ""
-
-[Logging]
-EnableRemote = true
-File = "./device-mqtt.log"
-
-[Writable]
-LogLevel = "INFO"
+  ProfilesDir = "./res"
 
 # Driver configs
 [Driver]
 IncomingSchema = "tcp"
-IncomingHost = "0.0.0.0"
+IncomingHost = "mqtt"
 IncomingPort = "1883"
-IncomingUser = "admin"
-IncomingPassword = "public"
+IncomingUser = ""
+IncomingPassword = ""
 IncomingQos = "0"
-IncomingKeepAlive = "3600"
+IncomingKeepAlive = "60"
 IncomingClientId = "IncomingDataSubscriber"
-IncomingTopic = "DataTopic"
+IncomingTopics = "rfid/gw/events:EventsJSON:IntelAcePoint,enter_event:EnterEvent:device-cv-mqtt,exit_event:ExitEvent:device-cv-mqtt"
 ResponseSchema = "tcp"
-ResponseHost = "0.0.0.0"
+ResponseHost = "mqtt"
 ResponsePort = "1883"
-ResponseUser = "admin"
-ResponsePassword = "public"
+ResponseUser = ""
+ResponsePassword = ""
 ResponseQos = "0"
-ResponseKeepAlive = "3600"
+ResponseKeepAlive = "60"
 ResponseClientId = "CommandResponseSubscriber"
 ResponseTopic = "ResponseTopic"
+AdditionalPayloadJsonValues = "lane_id:123"
