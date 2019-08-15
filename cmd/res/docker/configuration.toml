@@ -1,5 +1,5 @@
 [Service]
-Host = "device-mqtt-cv"
+Host = "device-mqtt"
 Port = 49982
 ConnectRetries = 3
 Labels = []
