@@ -1,9 +1,9 @@
-name: "MQTT-Device"
+name: "RFID-MQTT-Device"
 manufacturer: "Intel"
 model: "MQTT"
 labels:
 - "test"
-description: "MQTT Device Profile"
+description: "RFID MQTT Device Profile"
 deviceResources:
 - name: HeartbeatJSON
   description: "JSON message containing the heartbeat details"

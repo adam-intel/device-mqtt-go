@@ -44,8 +44,8 @@ LogLevel = "INFO"
 # Pre-define Devices
 [[DeviceList]]
   Name = "device-cv-mqtt"
-  Profile = "MQTT-Device"
-  Description = "MQTT device"
+  Profile = "CV-MQTT-Device"
+  Description = "CV MQTT device"
   Labels = ["MQTT"]
   [DeviceList.Protocols]
     [DeviceList.Protocols.mqtt]
@@ -58,8 +58,8 @@ LogLevel = "INFO"
        Topic = "NoUsed"	
 [[DeviceList]]
   Name = "IntelAcePoint"
-  Profile = "MQTT-Device"
-  Description = "MQTT device"
+  Profile = "RFID-MQTT-Device"
+  Description = "RFID MQTT device"
   Labels = ["MQTT"]
   [DeviceList.Protocols]
     [DeviceList.Protocols.mqtt]
