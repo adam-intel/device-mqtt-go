@@ -1,9 +1,9 @@
-name: "MQTT-Device"
+name: "CV-MQTT-Device"
 manufacturer: "Intel"
 model: "MQTT"
 labels:
 - "test"
-description: "MQTT Device Profile"
+description: "CV MQTT Device Profile"
 deviceResources:
 - name: EnterEvent
   description: "JSON message containing enter events"
