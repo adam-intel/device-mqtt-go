@@ -43,7 +43,7 @@ LogLevel = "INFO"
 
 # Pre-define Devices
 [[DeviceList]]
-  Name = "device-cv-mqtt"
+  Name = "device-cv-theft-detection"
   Profile = "MQTT-Device"
   Description = "MQTT device"
   Labels = ["MQTT"]
