@@ -44,7 +44,7 @@ LogLevel = "INFO"
 # Pre-define Devices
 [[DeviceList]]
   Name = "device-cv-mqtt"
-  Profile = "MQTT-Device"
+  Profile = "CV-MQTT-Device"
   Description = "MQTT device"
   Labels = ["MQTT"]
   [DeviceList.Protocols]
